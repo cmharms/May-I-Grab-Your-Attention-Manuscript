@@ -95,6 +95,7 @@ avg_look_length %>% group_by(stim_handle) %>%
 lmer(adjusted_length ~ motorLevel*stim_handle*fixationnumber + stim_sal + size + (1|stim) + (1|child_hashed_id), data = look_dat) -> handleXmotorLevelXlook_model
 summary(handleXmotorLevelXlook_model)
 anova(handleXmotorLevelXlook_model)
+sjPlot::tab_model(handleXmotorLevelXlook_model)
 
 ###### 040: calculate emmeans on 3 way interaction
 look_level_model_emmeans <- as.data.frame(emmeans::emmeans(handleXmotorLevelXlook_model, ~ stim_handle*fixationnumber*motorLevel, 
@@ -103,6 +104,8 @@ look_level_model_emmeans <- as.data.frame(emmeans::emmeans(handleXmotorLevelXloo
                                                            pbkrtest.limit = 3340))
 look_level_model_emmeans
 
+
+###### plot the observed data
 # create labels for plots:
 motor.labs <- c("pre-sit", "sit", "crawl", "stand", "walk")
 names(motor.labs) <- c("1", "2", "3", "4", "5")
@@ -114,20 +117,18 @@ ggplot(data = rle_dat,
            group = stim_handle, 
            color = as.factor(stim_handle),
            shape = as.factor(child_gender))) +
-  ylab("Observed Mean \n Fixation (ms)") + xlab("") +
-  #geom_jitter(shape = 1, alpha = .7, size = 2, width = NULL)+
-  geom_jitter(alpha = .7, size = 2, width = NULL)+
-  geom_smooth(method=lm, se=T, alpha = .5) + 
+  ylab("Observed Mean \n Fixation (ms)") + xlab("") + xlab("Fixation Index") +
+  geom_jitter(alpha = .6, size = 3, width = NULL)+
+  geom_smooth(method=lm, se=T, alpha = .3) + 
   labs(color= "Stimulus", shape = "Sex") + 
   coord_cartesian(ylim = c(0,5000)) + 
   scale_x_continuous(breaks = seq(1, 11, 2)) +
-  scale_shape_manual(values = c(1, 5), labels = c("girl", "boy")) +
-  scale_color_manual(values = c("#FF8C94", "#355C7D"), labels = c("handle", "not handle")) +
+  scale_shape_manual(values = c(17,19), labels = c("girl", "boy")) +
+  scale_color_manual(values = c("#FF8C94", "#355C7D"), labels = c("handle", "no handle")) +
   theme_half_open(25) + 
   background_grid(minor = 'none') + 
-  facet_grid(cols = vars(motorLevel),labeller = labeller(motorLevel = motor.labs)) -> observed_plot
+  facet_grid(rows = vars(motorLevel),labeller = labeller(motorLevel = motor.labs)) -> observed_plot
 observed_plot
-
 
 
 ## plot differences by motor level
@@ -144,37 +145,36 @@ ggplot(data = look_level_model_emmeans,
   ylab("Estimated Mean \n Fixation (ms)") + xlab("Fixation Index") +
   geom_point(size = 2.7) +
   geom_line(size = .8) +
-  #labs(color= "Stimulus") + 
-  #theme(legend.position = "none")+
   scale_color_manual(values = c("#FF8C94", "#355C7D")) +
   coord_cartesian(ylim = c(0,2500)) + 
   scale_x_continuous(breaks = seq(1, 7, 1)) +
   theme_half_open(25) + 
   background_grid(minor = 'none') + 
-  facet_grid(cols = vars(motorLevel),
+  facet_grid(rows = vars(motorLevel),
              labeller = labeller(motorLevel = motor.labs)) -> estimated_plot
 
-estimated_plot +  theme(legend.position = "none") #-> plot2
-
+estimated_plot
 
 # put the plots together
 cowplot::plot_grid(observed_plot + theme(legend.position = "none"),
                    estimated_plot + theme(legend.position = "none"),
                    labels = c('A', 'B'), 
-                   ncol = 1, 
+                   ncol = , 
                    label_size = 25) -> combo_plot
 combo_plot
 
 # format the legend
-legend <- get_legend(observed_plot + theme(legend.box.margin = margin(0, 0, 0, 0)))
+legend <- get_legend(observed_plot + theme(legend.box.margin = margin(0,0,0,0)))
 
 # add it
-legend_added <- plot_grid(combo_plot, legend, rel_widths = c(3, .3)) 
+legend_added <- plot_grid(combo_plot, legend, rel_widths = c(3, .5))
 legend_added
 
-
+# set working directory and save graph
 setwd("~/Downloads/May-I-Grab-Your-Attention-Manuscript-main/Manuscript Materials/1 Data Files/")
-ggexport(legend_added, filename = "Figure 2.jpg", height = 1000, width = 1700)
+
+ggexport(legend_added, filename = "Figure 2.jpg", height = 1300, width = 1000)
+
 
 
 #### 060: Sanity check--LMM on individual look durations using age in days rather than motor level ####
@@ -183,8 +183,7 @@ ggexport(legend_added, filename = "Figure 2.jpg", height = 1000, width = 1700)
 lmer(adjusted_length ~ scale(age_in_days)*stim_handle*fixationnumber + stim_sal + size + (1|stim) + (1|child_hashed_id), data = look_dat) -> age_sanity_check_model
 summary(age_sanity_check_model)
 anova(age_sanity_check_model)
+sjPlot::tab_model(age_sanity_check_model)
 
 # This model does not reveal interactions betweeen age in days and stimulus type (handled vs non-handled)
-
-
 

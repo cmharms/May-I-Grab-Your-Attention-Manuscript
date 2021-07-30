@@ -22,6 +22,7 @@
 library(tidyverse)
 library(lmerTest)
 library(performance)
+library(sjPlot)
 
 #### 010: read in files ####
 
@@ -54,13 +55,18 @@ check_collinearity(model_collinearity)
 lmer(centered_handle_pref ~ motorLevel*new_trial_order+prop_salience_difference+prop_size_difference + (1|filename) + (1|child_hashed_id), data = look_dat3) -> motorXtrial
 summary(motorXtrial)
 anova(motorXtrial) 
+sjPlot::tab_model(motorXtrial)
 
 ## This model revealed only a marginal effect of salience level.
 
 #### 050:  Sanity check--include age in days instead of motor level in the analysis ####
 
-lmer(centered_handle_pref ~ scale(age_in_days)*new_trial_order+prop_salience_difference+prop_size_difference + (1|filename) + (1|child_hashed_id), data = look_dat3) -> motorXtrial2
-summary(motorXtrial2)
-anova(motorXtrial2) 
+lmer(centered_handle_pref ~ scale(age_in_days)*new_trial_order+prop_salience_difference+prop_size_difference + (1|filename) + (1|child_hashed_id), data = look_dat3) -> ageXtrial
+summary(ageXtrial)
+anova(ageXtrial)
+sjPlot::tab_model(ageXtrial)
 
 ## This model revealed only a marginal effect of salience level.
+
+
+

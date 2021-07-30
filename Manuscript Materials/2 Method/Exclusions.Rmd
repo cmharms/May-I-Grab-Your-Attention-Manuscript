@@ -59,11 +59,12 @@ trial_exclusions %>%
 
 
 as.data.frame(table(trial_exclusions_sum$n_trials)) -> trial_exclusions_table
+
 ```
 
 # Exclusions
 
-Of the 159 original sessions, n =`r participant_exclusions_sum$mult_participations` were excluded because they represented the infants' second time participating in the experiment, n =`r participant_exclusions_sum$not_in_frame` were excluded for having no visible infant during the trials, n =`r participant_exclusions_sum$no_videos` were excluded for not having any recorded videos (due to technical error or because they exited the study prior to beginning trials), n = XXXX for having other video recording issues (e.g., due to uploading time, the videos were cut short), n =`r participant_exclusions_sum$age_old` were excluded for being outside of our age criteria, and n =`r participant_exclusions_sum$gestation` were excluded for being premature at birth. 
+Of the 159 original sessions, n =`r participant_exclusions_sum$mult_participations` were excluded because they represented the infants' second time participating in the experiment, n =`r participant_exclusions_sum$not_in_frame` were excluded for having no visible infant during the trials, n =`r participant_exclusions_sum$no_videos` were excluded for not having any recorded videos (due to technical error or because they exited the study prior to beginning trials), n = 16 for having other video recording issues (e.g., due to uploading time, the videos were cut short), n =`r participant_exclusions_sum$age_old` were excluded for being outside of our age criteria, and n =`r participant_exclusions_sum$gestation` were excluded for being premature at birth. 
 
 From the coding record, we calculated infants' looking to the handled and non-handled object in each bin of 500 ms as well as totaled across each trial. We used these scores to create handle preference scores by dividing the infants' looking to the handled object by their total looking to the two objects combined. We did this separately for each 500 ms bin of each trial as well as for infants' looking on each trial collapsed across those time bins.
 

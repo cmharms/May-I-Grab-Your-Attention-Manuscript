@@ -30,7 +30,8 @@ theme_set(theme_bw() +
 
 This script uses the following files:
 ```{r load_data}
-demos <- read.csv("~/Downloads/May-I-Grab-Your-Attention-Manuscript-main/Manuscript Materials/1 Data Files/final_demographics.csv")
+#demos <- read.csv("~/Downloads/May-I-Grab-Your-Attention-Manuscript-main/Manuscript Materials/1 Data Files/final_demographics.csv")
+demos <- read.csv("~/Box/MIGYA/Manuscript Materials/1 Data Files/final_demographics.csv")
 ```
 
 ### Demographic Calculations:
@@ -50,7 +51,7 @@ age_stat <- demos %>%
             max = round(max(age_in_days), 2),
             sd = sd(age_in_days),
             n = length(unique(child_hashed_id)),
-            female = sum(demos$child_gender == "f")) # 107 total
+            female = sum(demos$sex == "f")) # 107 total
 
 
 ## calculate race demographics
@@ -66,50 +67,58 @@ race_stat <- demos %>%
 
 # calculate distribution of income
 #unique(demos$income) # 21 unique values
-demos %>% summarise(na_income = sum(income == "" | income == "na"),
-                    over_200000 = sum(income == ">200000"),
-                    btwn_150_200000 = sum(income == "150000"|
+demos %>% summarise(na_income = ifelse(income == "" | income == "na" | is.na(income),1,0),
+                    over_200000 = ifelse(income == ">200000",1,0),
+                    btwn_150_200000 = ifelse(income == "150000"|
                                            income == "170000"| 
-                                            income == "180000"),
-                    btwn_100_150000 = sum(income == "100000"|
+                                            income == "180000",1,0),
+                    btwn_100_150000 = ifelse(income == "100000"|
                                           income == "110000"|
                                            income == "120000"| 
                                             income == "130000"|
-                                             income == "140000"),
-                    btwn_50_100000 = sum(income == "50000"|
+                                             income == "140000",1,0),
+                    btwn_50_100000 = ifelse(income == "50000"|
                                            income == "60000"| 
                                             income == "70000"|
                                              income == "80000"|
-                                              income == "90000"),
-                    less_50000 = sum(income == "5000"|
+                                              income == "90000",1,0),
+                    less_50000 = ifelse(income == "5000"|
                                            income == "15000"| 
                                             income == "20000"|
                                              income == "30000"|
-                                              income == "40000")) -> dem3 # 107 total
+                                              income == "40000",1,0)) -> dem3 # 107 total
+
+dem3 %>% 
+  summarise(na_income = sum(as.numeric(na_income)),
+            over_200000 = sum(as.numeric(over_200000), na.rm = T),
+            btwn_150_200000 = sum(as.numeric(btwn_150_200000), na.rm = T),
+            btwn_100_150000 = sum(as.numeric(btwn_100_150000), na.rm = T),
+            btwn_50_100000 = sum(as.numeric(btwn_50_100000), na.rm = T),
+            less_50000 = sum(as.numeric(less_50000), na.rm = T)) -> dem4
 
 # calculate distribution of education
 as.character(demos$education_primary) -> demos$education_primary
 as.character(demos$education_spouse) -> demos$education_spouse
 
 demos %>% 
-  mutate(primary_ed = ifelse(education_primary == "grad"|
+  summarise(primary_ed = ifelse(education_primary == "grad"|
                                education_primary == "prof"|
                                education_primary == "bach"|
-                               education_primary == "assoc", "degree", 0),
+                               education_primary == "assoc", 1, 0),
          secondary_ed = ifelse(education_spouse == "grad"|
                                  education_spouse == "prof"|
                                  education_spouse == "bach"|
-                                 education_spouse == "assoc", "degree", 0),
-         household_ed = ifelse(primary_ed == "degree" | secondary_ed == "degree", 1, 0),
-         na_ed = ifelse(education_primary == "" & education_spouse == "", 1, 0),
-         no_college = ifelse(primary_ed != "degree" & 
-                               secondary_ed != "degree" & 
+                                 education_spouse == "assoc", 1, 0),
+         household_ed = ifelse(primary_ed == "1" | secondary_ed == "1", 1, 0),
+         na_ed = ifelse(is.na(education_primary) & is.na(education_spouse), 1, 0),
+         no_college = ifelse(primary_ed != "1" & 
+                               secondary_ed != "1" & 
                                na_ed != "1", 1, 0)) -> d2
   
 d2 %>% 
-  summarise(household_collegedegree = sum(as.numeric(household_ed)),
-            household_nocollegedegree = sum(as.numeric(no_college)),
-            household_na = sum(as.numeric(na_ed))) -> d3
+  summarise(household_collegedegree = sum(as.numeric(household_ed), na.rm = T),
+            household_nocollegedegree = sum(as.numeric(no_college), na.rm = T),
+            household_na = sum(as.numeric(na_ed), na.rm = T)) -> d3
 
 ```
 
@@ -117,16 +126,14 @@ d2 %>%
 
 There were 159 infant participation sessions in this study between 08-26-20 and 01-26-21 Our final sample included `r age_stat$n` of these infants (Mage = `r age_stat$mean` days old, SD = `r age_stat$sd`; `r age_stat$female` girls). All infants in the final sample resided in the US and were born full term. Infants were recruited via the Lookit recruiter (i.e., emails were sent to families who had accounts in Lookit when their infant was eligible for this study), social media (ads placed on Facebook), and emails from our lab to families who had agreed to participate in research. The infants in our local participant pool were initially identified from birth records supplied by the State of California Vital Records. Parents were sent informational mailings and contacted us if they wished to be contacted about research opportunities. Families who were recruited from social media or our pool were given information about how to access Lookit; if they chose to participate, they created an account to access our study. All families who participated from the US received a $5 gift card to Amazon.
 
-### Family income and education
+## Family characteristics
 
+### Race
 The sample was racially diverse. Of the `r nrow(demos)` infants in our final sample, `r race_stat$white` were White, `r race_stat$black` were Black or African American, `r race_stat$asian` were Asian American, `r race_stat$multiracial` were multiracial, and `r race_stat$na` were some other race or did not report race. Regardless of race, `r race_stat$hispanic` infants were reported to be Hispanic. The sample was upper middle class. 
 
-Of the `r nrow(demos)` families in our sample, at least `r d3$household_collegedegree` had at least 1 college degree, while `r d3$household_nocollegedegree` had no college degree, and `r d3$household_na` declined to state. 
+### Income
+`r dem4$na_income` families did not state their income. `r dem4$over_200000` made more than 200,000 per year.`r dem4$btwn_150_200000` made between 150,000 and 200,000 per year. `r dem4$btwn_100_150000` made between 100,000 and 150,000 per year. `r dem4$btwn_50_100000` made between 50,000 and 100,000 per year. Finally, `r dem4$less_50000` made less than 50,000 per year.
 
-
-
-
-
-
-
+### College
+At least `r d3$household_collegedegree` had at least 1 college degree, while `r d3$household_nocollegedegree` had no college degree, and `r d3$household_na` declined to state. 
 
